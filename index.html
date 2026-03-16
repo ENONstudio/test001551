@@ -148,7 +148,7 @@
         <div class="stat">スコア<b id="score">0</b></div>
         <div class="stat">消去数<b id="clears">0</b></div>
         <div class="stat">速度<b id="speed">1.0</b></div>
-        <div class="stat">残り<b id="targetTimer">6.0</b></div>
+        <div class="stat">ルール<b id="targetMode">毎回変更</b></div>
       </div>
     </div>
 
@@ -162,7 +162,7 @@
     </div>
 
     <div class="card hint">
-      指定された色だけ消せます。指定色は一定時間そのままなので、同じ色を連続で消せます。<br>
+      指定された色だけ消せます。正しい色を1つ消すたびに、次に消す色がすぐ変わります。<br>
       指定色以外は反応しません。下の黄色ラインを超えたらゲームオーバーです。
     </div>
   </div>
@@ -174,7 +174,7 @@
     const scoreEl = document.getElementById('score');
     const clearsEl = document.getElementById('clears');
     const speedEl = document.getElementById('speed');
-    const targetTimerEl = document.getElementById('targetTimer');
+    const targetModeEl = document.getElementById('targetMode');
     const targetChip = document.getElementById('targetChip');
     const targetName = document.getElementById('targetName');
     const startBtn = document.getElementById('startBtn');
@@ -197,7 +197,6 @@
 
     const CELL = canvas.width / COLS;
     const LINE_Y = canvas.height - 88;
-    const TARGET_DURATION = 6.0;
 
     let grid = [];
     let fallingOffset = -CELL * 3;
@@ -208,7 +207,6 @@
     let score = 0;
     let clears = 0;
     let targetColor = COLORS[0];
-    let targetTimeLeft = TARGET_DURATION;
 
     function emptyGrid() {
       return Array.from({ length: ROWS }, () => Array(COLS).fill(null));
@@ -220,17 +218,16 @@
 
     function setNewTarget() {
       targetColor = pickColor();
-      targetTimeLeft = TARGET_DURATION;
       targetChip.style.background = targetColor.fill;
       targetName.textContent = targetColor.name;
-      targetTimerEl.textContent = targetTimeLeft.toFixed(1);
+      targetModeEl.textContent = '毎回変更';
     }
 
     function updateHud() {
       scoreEl.textContent = score;
       clearsEl.textContent = clears;
       speedEl.textContent = (dropSpeed / 22).toFixed(1);
-      targetTimerEl.textContent = targetTimeLeft.toFixed(1);
+      targetModeEl.textContent = '毎回変更';
     }
 
     function initGame() {
@@ -275,9 +272,6 @@
 
     function advanceFall(dt) {
       fallingOffset += dropSpeed * dt;
-      targetTimeLeft -= dt;
-      if (targetTimeLeft <= 0) setNewTarget();
-
       if (fallingOffset >= CELL) {
         fallingOffset -= CELL;
         spawnTopRow();
@@ -317,6 +311,7 @@
       grid[row][col] = null;
       score += 10;
       clears += 1;
+      setNewTarget();
       updateHud();
       checkGameOver();
       draw();
@@ -387,7 +382,7 @@
       }
 
       if (!running && !gameOver) {
-        overlay('タップで開始', '指定色だけを連続で消そう');
+        overlay('タップで開始', '正しい色を1つずつ消していこう');
       }
       if (gameOver) {
         overlay('ゲームオーバー', `スコア ${score} / 消去数 ${clears}`);
