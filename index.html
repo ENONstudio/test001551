@@ -11,84 +11,97 @@
       --panel: rgba(255,255,255,0.08);
       --text: #f8fafc;
       --sub: #cbd5e1;
-      --danger: #ef4444;
       --line: #facc15;
     }
-    * { box-sizing: border-box; }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { height: 100%; }
     body {
       margin: 0;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       color: var(--text);
       background: linear-gradient(180deg, var(--bg2), var(--bg1));
-      min-height: 100vh;
+      min-height: 100svh;
       display: flex;
       justify-content: center;
-      align-items: stretch;
     }
     .wrap {
-      width: min(100vw, 560px);
-      min-height: 100vh;
+      width: min(100vw, 430px);
+      min-height: 100svh;
+      padding: max(10px, env(safe-area-inset-top)) 12px max(10px, env(safe-area-inset-bottom)) 12px;
       display: flex;
       flex-direction: column;
-      padding: 14px;
-      gap: 12px;
-    }
-    .hud {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
       gap: 10px;
     }
     .card {
       background: var(--panel);
       border: 1px solid rgba(255,255,255,0.12);
       border-radius: 16px;
-      padding: 12px;
+      padding: 10px 12px;
       backdrop-filter: blur(6px);
     }
+    .top {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 10px;
+      align-items: stretch;
+    }
     .title {
-      font-size: 22px;
+      font-size: 20px;
       font-weight: 800;
+      line-height: 1.2;
       margin-bottom: 2px;
     }
     .sub {
       color: var(--sub);
-      font-size: 13px;
-      line-height: 1.4;
+      font-size: 12px;
+      line-height: 1.35;
     }
     .target-row {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
       margin-top: 8px;
+      font-size: 13px;
       flex-wrap: wrap;
     }
     .target-chip {
-      width: 28px;
-      height: 28px;
+      width: 26px;
+      height: 26px;
       border-radius: 8px;
-      border: 2px solid rgba(255,255,255,0.9);
+      border: 2px solid rgba(255,255,255,0.95);
       box-shadow: 0 0 0 3px rgba(255,255,255,0.12) inset;
+      flex: 0 0 auto;
     }
     .stats {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(2, 1fr);
       gap: 8px;
-      margin-top: 8px;
+      height: 100%;
     }
     .stat {
       background: rgba(255,255,255,0.06);
       border-radius: 12px;
       padding: 8px;
       text-align: center;
+      font-size: 12px;
+      color: var(--sub);
     }
     .stat b {
       display: block;
+      color: var(--text);
       font-size: 18px;
-      margin-top: 4px;
+      margin-top: 2px;
+    }
+    .game-area {
+      flex: 1;
+      min-height: 0;
+      display: flex;
     }
     #gameCanvas {
       width: 100%;
-      aspect-ratio: 3 / 5;
+      height: 100%;
+      min-height: 52svh;
+      max-height: 62svh;
       background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
       border-radius: 20px;
       border: 1px solid rgba(255,255,255,0.14);
@@ -99,48 +112,49 @@
     .controls {
       display: flex;
       gap: 10px;
-      flex-wrap: wrap;
     }
     button {
       flex: 1;
-      min-width: 130px;
       border: 0;
       border-radius: 14px;
-      padding: 14px 16px;
+      padding: 13px 14px;
       font-size: 16px;
       font-weight: 700;
       color: white;
       background: rgba(255,255,255,0.12);
       border: 1px solid rgba(255,255,255,0.14);
     }
-    button.primary {
-      background: #2563eb;
-    }
+    button.primary { background: #2563eb; }
     .hint {
-      font-size: 13px;
+      font-size: 12px;
       color: var(--sub);
-      line-height: 1.5;
+      line-height: 1.45;
     }
   </style>
 </head>
 <body>
   <div class="wrap">
-    <div class="card">
-      <div class="title">TESTゲーム01</div>
-      <div class="sub">指定された色だけをタップして消す落下ブロックゲーム</div>
-      <div class="target-row">
-        <span>今の指定色:</span>
-        <div id="targetChip" class="target-chip"></div>
-        <b id="targetName">-</b>
+    <div class="top">
+      <div class="card">
+        <div class="title">TESTゲーム01</div>
+        <div class="sub">指定色だけをタップして消す</div>
+        <div class="target-row">
+          <span>今の色</span>
+          <div id="targetChip" class="target-chip"></div>
+          <b id="targetName">-</b>
+        </div>
       </div>
       <div class="stats">
         <div class="stat">スコア<b id="score">0</b></div>
         <div class="stat">消去数<b id="clears">0</b></div>
         <div class="stat">速度<b id="speed">1.0</b></div>
+        <div class="stat">残り<b id="targetTimer">6.0</b></div>
       </div>
     </div>
 
-    <canvas id="gameCanvas" width="480" height="800"></canvas>
+    <div class="game-area">
+      <canvas id="gameCanvas"></canvas>
+    </div>
 
     <div class="controls">
       <button id="startBtn" class="primary">スタート</button>
@@ -148,9 +162,8 @@
     </div>
 
     <div class="card hint">
-      上からつながった四角いブロックが徐々に降りてきます。<br>
-      指定された色のブロックをタップすると、そのブロックが消え、上にぶら下がっていたブロックも崩れて連鎖で消えます。<br>
-      指定色以外をタップしても反応しません。どれかのブロックが下の黄色いラインを超えたらゲームオーバーです。
+      指定された色だけ消せます。指定色は一定時間そのままなので、同じ色を連続で消せます。<br>
+      指定色以外は反応しません。下の黄色ラインを超えたらゲームオーバーです。
     </div>
   </div>
 
@@ -161,16 +174,19 @@
     const scoreEl = document.getElementById('score');
     const clearsEl = document.getElementById('clears');
     const speedEl = document.getElementById('speed');
+    const targetTimerEl = document.getElementById('targetTimer');
     const targetChip = document.getElementById('targetChip');
     const targetName = document.getElementById('targetName');
     const startBtn = document.getElementById('startBtn');
     const resetBtn = document.getElementById('resetBtn');
 
+    const BASE_W = 390;
+    const BASE_H = 620;
+    canvas.width = BASE_W;
+    canvas.height = BASE_H;
+
     const COLS = 6;
     const ROWS = 12;
-    const CELL = canvas.width / COLS;
-    const LINE_Y = canvas.height - 120;
-
     const COLORS = [
       { key: 'red', name: '赤', fill: '#ef4444' },
       { key: 'blue', name: '青', fill: '#3b82f6' },
@@ -179,15 +195,20 @@
       { key: 'purple', name: '紫', fill: '#a855f7' }
     ];
 
+    const CELL = canvas.width / COLS;
+    const LINE_Y = canvas.height - 88;
+    const TARGET_DURATION = 6.0;
+
     let grid = [];
     let fallingOffset = -CELL * 3;
-    let dropSpeed = 26;
+    let dropSpeed = 22;
     let lastTime = 0;
     let running = false;
     let gameOver = false;
     let score = 0;
     let clears = 0;
     let targetColor = COLORS[0];
+    let targetTimeLeft = TARGET_DURATION;
 
     function emptyGrid() {
       return Array.from({ length: ROWS }, () => Array(COLS).fill(null));
@@ -199,24 +220,28 @@
 
     function setNewTarget() {
       targetColor = pickColor();
+      targetTimeLeft = TARGET_DURATION;
       targetChip.style.background = targetColor.fill;
       targetName.textContent = targetColor.name;
+      targetTimerEl.textContent = targetTimeLeft.toFixed(1);
     }
 
     function updateHud() {
       scoreEl.textContent = score;
       clearsEl.textContent = clears;
-      speedEl.textContent = (dropSpeed / 26).toFixed(1);
+      speedEl.textContent = (dropSpeed / 22).toFixed(1);
+      targetTimerEl.textContent = targetTimeLeft.toFixed(1);
     }
 
     function initGame() {
       grid = emptyGrid();
       fallingOffset = -CELL * 3;
-      dropSpeed = 26;
+      dropSpeed = 22;
       score = 0;
       clears = 0;
       gameOver = false;
       running = false;
+      lastTime = 0;
       seedInitialBlocks();
       setNewTarget();
       updateHud();
@@ -224,33 +249,25 @@
     }
 
     function seedInitialBlocks() {
-      for (let r = 0; r < 5; r++) {
-        const chainLen = 2 + Math.floor(Math.random() * 3);
-        const c = Math.floor(Math.random() * COLS);
-        let startR = r;
-        for (let i = 0; i < chainLen && startR + i < ROWS; i++) {
-          grid[startR + i][c] = { color: pickColor() };
-        }
-        if (Math.random() < 0.6 && c + 1 < COLS && startR + chainLen - 1 < ROWS) {
-          grid[startR + chainLen - 1][c + 1] = { color: pickColor() };
-        }
-      }
-      for (let r = 0; r < ROWS; r++) {
+      for (let r = 2; r < ROWS - 3; r++) {
         for (let c = 0; c < COLS; c++) {
-          if (!grid[r][c] && Math.random() < 0.1) {
-            grid[r][c] = { color: pickColor() };
-          }
+          if (Math.random() < 0.34) grid[r][c] = { color: pickColor() };
         }
       }
     }
 
     function spawnTopRow() {
       const newRow = Array(COLS).fill(null);
-      const segments = 1 + Math.floor(Math.random() * 3);
-      for (let i = 0; i < segments; i++) {
+      const minBlocks = 2;
+      const maxBlocks = 4;
+      const count = minBlocks + Math.floor(Math.random() * (maxBlocks - minBlocks + 1));
+      let filled = 0;
+      while (filled < count) {
         const c = Math.floor(Math.random() * COLS);
-        newRow[c] = { color: pickColor() };
-        if (Math.random() < 0.4 && c + 1 < COLS) newRow[c + 1] = { color: pickColor() };
+        if (!newRow[c]) {
+          newRow[c] = { color: pickColor() };
+          filled++;
+        }
       }
       grid.unshift(newRow);
       if (grid.length > ROWS) grid.pop();
@@ -258,13 +275,16 @@
 
     function advanceFall(dt) {
       fallingOffset += dropSpeed * dt;
+      targetTimeLeft -= dt;
+      if (targetTimeLeft <= 0) setNewTarget();
+
       if (fallingOffset >= CELL) {
         fallingOffset -= CELL;
         spawnTopRow();
-        dropSpeed = Math.min(62, dropSpeed + 0.35);
-        updateHud();
+        dropSpeed = Math.min(52, dropSpeed + 0.3);
         checkGameOver();
       }
+      updateHud();
     }
 
     function checkGameOver() {
@@ -295,57 +315,11 @@
       if (cell.color.key !== targetColor.key) return;
 
       grid[row][col] = null;
-      let removed = 1;
-
-      // クリックしたブロックより上にあり、下への接続を失ったブロックを崩す
-      const unsupported = findUnsupportedFloating();
-      for (const pos of unsupported) {
-        if (grid[pos.r][pos.c]) {
-          grid[pos.r][pos.c] = null;
-          removed += 1;
-        }
-      }
-
-      score += removed * 10;
-      clears += removed;
+      score += 10;
+      clears += 1;
       updateHud();
-      setNewTarget();
       checkGameOver();
       draw();
-    }
-
-    function findUnsupportedFloating() {
-      // 下端または下につながるブロック列を「支えあり」とみなす
-      const supported = Array.from({ length: ROWS }, () => Array(COLS).fill(false));
-      const queue = [];
-
-      for (let c = 0; c < COLS; c++) {
-        if (grid[ROWS - 1][c]) {
-          supported[ROWS - 1][c] = true;
-          queue.push([ROWS - 1, c]);
-        }
-      }
-
-      const dirs = [[1,0],[-1,0],[0,1],[0,-1]];
-      while (queue.length) {
-        const [r, c] = queue.shift();
-        for (const [dr, dc] of dirs) {
-          const nr = r + dr;
-          const nc = c + dc;
-          if (nr < 0 || nr >= ROWS || nc < 0 || nc >= COLS) continue;
-          if (!grid[nr][nc] || supported[nr][nc]) continue;
-          supported[nr][nc] = true;
-          queue.push([nr, nc]);
-        }
-      }
-
-      const floating = [];
-      for (let r = 0; r < ROWS; r++) {
-        for (let c = 0; c < COLS; c++) {
-          if (grid[r][c] && !supported[r][c]) floating.push({ r, c });
-        }
-      }
-      return floating;
     }
 
     function drawBlock(x, y, color) {
@@ -376,7 +350,6 @@
     function draw() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // 背景グリッド
       ctx.strokeStyle = 'rgba(255,255,255,0.06)';
       ctx.lineWidth = 1;
       for (let c = 0; c <= COLS; c++) {
@@ -394,7 +367,6 @@
         ctx.stroke();
       }
 
-      // 危険ライン
       ctx.strokeStyle = '#facc15';
       ctx.lineWidth = 4;
       ctx.beginPath();
@@ -404,7 +376,6 @@
       ctx.fillStyle = 'rgba(250,204,21,0.18)';
       ctx.fillRect(0, LINE_Y, canvas.width, canvas.height - LINE_Y);
 
-      // ブロック
       for (let r = 0; r < ROWS; r++) {
         for (let c = 0; c < COLS; c++) {
           const cell = grid[r][c];
@@ -416,7 +387,7 @@
       }
 
       if (!running && !gameOver) {
-        overlay('タップで開始', '指定色だけを消して、ライン超えを防ごう');
+        overlay('タップで開始', '指定色だけを連続で消そう');
       }
       if (gameOver) {
         overlay('ゲームオーバー', `スコア ${score} / 消去数 ${clears}`);
@@ -424,16 +395,16 @@
     }
 
     function overlay(title, sub) {
-      ctx.fillStyle = 'rgba(2,6,23,0.68)';
-      roundRect(ctx, 44, canvas.height / 2 - 90, canvas.width - 88, 180, 22);
+      ctx.fillStyle = 'rgba(2,6,23,0.72)';
+      roundRect(ctx, 36, canvas.height / 2 - 78, canvas.width - 72, 156, 22);
       ctx.fill();
       ctx.fillStyle = '#fff';
       ctx.textAlign = 'center';
-      ctx.font = 'bold 34px sans-serif';
-      ctx.fillText(title, canvas.width / 2, canvas.height / 2 - 12);
-      ctx.font = '18px sans-serif';
+      ctx.font = 'bold 28px sans-serif';
+      ctx.fillText(title, canvas.width / 2, canvas.height / 2 - 8);
+      ctx.font = '16px sans-serif';
       ctx.fillStyle = '#cbd5e1';
-      ctx.fillText(sub, canvas.width / 2, canvas.height / 2 + 28);
+      ctx.fillText(sub, canvas.width / 2, canvas.height / 2 + 24);
     }
 
     function loop(ts) {
@@ -460,7 +431,7 @@
       return { x, y };
     }
 
-    canvas.addEventListener('click', (e) => {
+    function handleTap(e) {
       if (!running && !gameOver) {
         startGame();
         draw();
@@ -471,20 +442,12 @@
       const cell = cellAtPoint(x, y);
       if (!cell) return;
       removeClickedBlock(cell.row, cell.col);
-    });
+    }
 
+    canvas.addEventListener('click', handleTap);
     canvas.addEventListener('touchstart', (e) => {
       e.preventDefault();
-      if (!running && !gameOver) {
-        startGame();
-        draw();
-        return;
-      }
-      if (gameOver) return;
-      const { x, y } = getCanvasPos(e);
-      const cell = cellAtPoint(x, y);
-      if (!cell) return;
-      removeClickedBlock(cell.row, cell.col);
+      handleTap(e);
     }, { passive: false });
 
     startBtn.addEventListener('click', startGame);
